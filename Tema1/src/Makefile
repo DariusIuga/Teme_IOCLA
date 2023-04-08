@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 INPUT=input_sensors.dat
-VALGRIND=valgrind –leak-check=full –show-leak-kinds=all –track-origins=yes
+VALGRIND=valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 build: main
 
