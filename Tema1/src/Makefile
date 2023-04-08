@@ -1,5 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -Wextra -g
+INPUT=input_sensors.dat
+VALGRIND=valgrind –leak-check=full –show-leak-kinds=all –track-origins=yes
 
 build: main
 
@@ -13,7 +15,10 @@ operations.o: operations.c
 	$(CC) $(CFLAGS) -c $^
 
 run: build
-	./main
+	./main $(INPUT)
+
+check:
+	$(VALGRIND)	./main $(INPUT)
 
 clean:
 	rm -f *.o main
