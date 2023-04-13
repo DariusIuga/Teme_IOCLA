@@ -1,17 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "structs.h"
+#include "analyze.h"
 
-void changeSensorPriority(sensor *, unsigned int);
+#define BUF_LENGTH 20
+
+void changeSensorPriority(sensor *, int);
 void swapSensors(sensor *, sensor *);
-void printSensors(sensor *, unsigned int);
+void printSensor(sensor);
 
 int main(int argc, char const *argv[])
 {
 	// DEBUGGING MODE:
 
-	// argc = 2;
-	// argv[1] = "input_sensors.dat";
+	argc = 2;
+	argv[1] = "input.dat";
 
 	// DEBUGGING MODE
 	if (argc < 2)
@@ -28,8 +32,10 @@ int main(int argc, char const *argv[])
 	}
 
 	sensor *sensors;
-	unsigned int nrSensors, i;
-	fread(&nrSensors, sizeof(unsigned int), 1, input);
+	int nrSensors, i;
+	char line[BUF_LENGTH], *token;
+
+	fread(&nrSensors, sizeof(int), 1, input);
 
 	sensors = (sensor *)malloc(nrSensors * sizeof(sensor));
 
@@ -55,11 +61,49 @@ int main(int argc, char const *argv[])
 	fclose(input);
 
 	changeSensorPriority(sensors, nrSensors);
-	printSensors(sensors, nrSensors);
 
-	// Use the sensor data here
+	// Input from terminal
+	if (fgets(line, BUF_LENGTH, stdin) == NULL)
+	{
+		fprintf(stderr, "Eroare la citirea liniei din terminal\n");
+	}
+	while (strstr(line, "exit") == NULL)
+	{
+		token = strtok(line, " \n");
 
-	// Free the memory allocated for the sensor data
+		if (strcmp(token, "print") == 0)
+		{
+			token = strtok(NULL, "\n");
+			i = atoi(token);
+			if (i < 0 || i > nrSensors - 1)
+			{
+				printf("Index not in range!\n");
+			}
+			else
+			{
+				printSensor(sensors[i]);
+			}
+		}
+		else if (strcmp(token, "analyze") == 0)
+		{
+			token = strtok(NULL, "\n");
+			i = atoi(token);
+			if (i < 0 || i > nrSensors - 1)
+			{
+				printf("Index not in range!\n");
+			}
+			else
+			{
+				analyzeSensor(sensors[i]);
+			}
+		}
+		else if (strcmp(token, "clear") == 0)
+		{
+			// TODO
+		}
+
+		fgets(line, BUF_LENGTH, stdin);
+	}
 
 	for (i = 0; i < nrSensors; i++)
 	{
@@ -71,9 +115,9 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void changeSensorPriority(sensor *sensors, unsigned int nrSensors)
+void changeSensorPriority(sensor *sensors, int nrSensors)
 {
-	unsigned int i, lastPmuIndex = 0;
+	int i, lastPmuIndex = 0;
 	for (i = 0; i < nrSensors; ++i)
 	{
 		if (sensors[i].sensor_type == PMU)
@@ -94,52 +138,48 @@ void swapSensors(sensor *sensor1, sensor *sensor2)
 	*sensor2 = temp;
 }
 
-void printSensors(sensor *sensors, unsigned int nrSensors)
+void printSensor(sensor sensor)
 {
 	tire_sensor *tire;
 	power_management_unit *pmu;
-	unsigned int i;
-	for (i = 0; i < nrSensors; ++i)
+	switch (sensor.sensor_type)
 	{
-		switch (sensors[i].sensor_type)
-		{
-		case TIRE:
-		{
-			tire = (tire_sensor *)sensors[i].sensor_data;
+	case TIRE:
+	{
+		tire = (tire_sensor *)sensor.sensor_data;
 
-			printf("Tire Sensor\n");
-			printf("Pressure: %.2f\n", tire->pressure);
-			printf("Temperature: %.2f\n", tire->temperature);
-			printf("Wear Level: %d%%\n", tire->wear_level);
-			if (tire->performace_score != 0)
-			{
-				printf("Performance Score: %d\n", tire->performace_score);
-			}
-			else
-			{
-				printf("Performance Score: Not Calculated\n");
-			}
-
-			break;
-		}
-		case PMU:
+		printf("Tire Sensor\n");
+		printf("Pressure: %.2f\n", tire->pressure);
+		printf("Temperature: %.2f\n", tire->temperature);
+		printf("Wear Level: %d%%\n", tire->wear_level);
+		if (tire->performace_score != 0)
 		{
-			pmu = (power_management_unit *)sensors[i].sensor_data;
-
-			printf("Power Management Unit\n");
-			printf("Voltage: %.2f\n", pmu->voltage);
-			printf("Current: %.2f\n", pmu->current);
-			printf("Power Consumption: %.2f\n", pmu->power_consumption);
-			printf("Energy Regen: %d%%\n", pmu->energy_regen);
-			printf("Energy Storage: %d%%\n", pmu->energy_storage);
-
-			break;
+			printf("Performance Score: %d\n", tire->performace_score);
 		}
-		default:
+		else
 		{
-			fprintf(stderr, "Error: Invalid sensor type!\n");
-			exit(1);
+			printf("Performance Score: Not Calculated\n");
 		}
-		}
+
+		break;
+	}
+	case PMU:
+	{
+		pmu = (power_management_unit *)sensor.sensor_data;
+
+		printf("Power Management Unit\n");
+		printf("Voltage: %.2f\n", pmu->voltage);
+		printf("Current: %.2f\n", pmu->current);
+		printf("Power Consumption: %.2f\n", pmu->power_consumption);
+		printf("Energy Regen: %d%%\n", pmu->energy_regen);
+		printf("Energy Storage: %d%%\n", pmu->energy_storage);
+
+		break;
+	}
+	default:
+	{
+		fprintf(stderr, "Error: Invalid sensor type!\n");
+		exit(1);
+	}
 	}
 }
