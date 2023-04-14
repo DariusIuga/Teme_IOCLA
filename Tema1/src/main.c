@@ -2,20 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include "structs.h"
-#include "analyze.h"
 
 #define BUF_LENGTH 20
+
+extern void get_operations(void **operations);
 
 void changeSensorPriority(sensor *, int);
 void swapSensors(sensor *, sensor *);
 void printSensor(sensor);
+void analyzeSensor(sensor);
 
 int main(int argc, char const *argv[])
 {
 	// DEBUGGING MODE:
 
-	argc = 2;
-	argv[1] = "input.dat";
+	// argc = 2;
+	// argv[1] = "/home/darius/Documents/VS/C_C++/Teme_IOCLA/Tema1/checker/input/sensors_print_easy_1.dat";
 
 	// DEBUGGING MODE
 	if (argc < 2)
@@ -67,7 +69,7 @@ int main(int argc, char const *argv[])
 	{
 		fprintf(stderr, "Eroare la citirea liniei din terminal\n");
 	}
-	while (strstr(line, "exit") == NULL)
+	while (1)
 	{
 		token = strtok(line, " \n");
 
@@ -101,32 +103,35 @@ int main(int argc, char const *argv[])
 		{
 			// TODO
 		}
+		else if (strcmp(token, "exit") == 0)
+		{
+			for (i = 0; i < nrSensors; i++)
+			{
+				free(sensors[i].sensor_data);
+				free(sensors[i].operations_idxs);
+			}
+			free(sensors);
+			break;
+		}
 
 		fgets(line, BUF_LENGTH, stdin);
 	}
-
-	for (i = 0; i < nrSensors; i++)
-	{
-		free(sensors[i].sensor_data);
-		free(sensors[i].operations_idxs);
-	}
-	free(sensors);
 
 	return 0;
 }
 
 void changeSensorPriority(sensor *sensors, int nrSensors)
 {
-	int i, lastPmuIndex = 0;
+	int i, j, pmuIndex = 0;
 	for (i = 0; i < nrSensors; ++i)
 	{
 		if (sensors[i].sensor_type == PMU)
 		{
-			if (lastPmuIndex != i)
+			for (j = i; j > pmuIndex; --j)
 			{
-				swapSensors(&sensors[lastPmuIndex], &sensors[i]);
+				swapSensors(&sensors[j], &sensors[j - 1]);
 			}
-			++lastPmuIndex;
+			++pmuIndex;
 		}
 	}
 }
@@ -181,5 +186,18 @@ void printSensor(sensor sensor)
 		fprintf(stderr, "Error: Invalid sensor type!\n");
 		exit(1);
 	}
+	}
+}
+
+void analyzeSensor(sensor sensor)
+{
+	int i;
+	void (*operations[8])(void *);
+
+	get_operations((void **)operations);
+
+	for (i = 0; i < sensor.nr_operations; i++)
+	{
+		operations[sensor.operations_idxs[i]](sensor.sensor_data);
 	}
 }
