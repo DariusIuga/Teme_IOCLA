@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "structs.h"
 
 #define BUF_LENGTH 20
 
 extern void get_operations(void **operations);
 
-void changeSensorPriority(sensor *, int);
-void swapSensors(sensor *, sensor *);
-void printSensor(sensor);
-void analyzeSensor(sensor);
+void changeSensorPriority(sensor *sensors, int nrSensors);
+void swapSensors(sensor *sensor1, sensor *sensor2);
+void printSensor(sensor sensor);
+void analyzeSensor(sensor sensor);
+bool isInvalid(sensor sensor);
+void clearSensors(sensor *sensors, int *nrSensors);
 
 int main(int argc, char const *argv[])
 {
@@ -101,7 +104,7 @@ int main(int argc, char const *argv[])
 		}
 		else if (strcmp(token, "clear") == 0)
 		{
-			// TODO
+			clearSensors(sensors, &nrSensors);
 		}
 		else if (strcmp(token, "exit") == 0)
 		{
@@ -200,4 +203,90 @@ void analyzeSensor(sensor sensor)
 	{
 		operations[sensor.operations_idxs[i]](sensor.sensor_data);
 	}
+}
+
+bool isInvalid(sensor sensor)
+{
+	tire_sensor *tire;
+	power_management_unit *pmu;
+	switch (sensor.sensor_type)
+	{
+	case TIRE:
+	{
+		tire = (tire_sensor *)sensor.sensor_data;
+		if (tire->pressure < 19 || tire->pressure > 28)
+		{
+			return true;
+		}
+		if (tire->temperature < 0 || tire->temperature > 120)
+		{
+			return true;
+		}
+		if (tire->wear_level < 0 || tire->wear_level > 100)
+		{
+			return true;
+		}
+		break;
+	}
+	case PMU:
+	{
+		pmu = (power_management_unit *)sensor.sensor_data;
+		if (pmu->voltage < 10 || pmu->voltage > 20)
+		{
+			return true;
+		}
+		if (pmu->current < -100 || pmu->current > 100)
+		{
+			return true;
+		}
+		if (pmu->power_consumption < 0 || pmu->power_consumption > 1000)
+		{
+			return true;
+		}
+		if (pmu->energy_regen < 0 || pmu->energy_regen > 100)
+		{
+			return true;
+		}
+		if (pmu->energy_storage < 0 || pmu->energy_storage > 100)
+		{
+			return true;
+		}
+		break;
+	}
+	default:
+	{
+		fprintf(stderr, "Error: Invalid sensor type!\n");
+		exit(1);
+		return true;
+	}
+	}
+
+	return false;
+}
+
+void clearSensors(sensor *sensors, int *nrSensors)
+{
+	int i, count = 0;
+	for (i = 0; i < *nrSensors; ++i)
+	{
+		if (isInvalid(sensors[i]))
+		{
+			free(sensors[i].sensor_data);
+			free(sensors[i].operations_idxs);
+		}
+		else
+		{
+			sensors[count++] = sensors[i];
+		}
+	}
+
+	*nrSensors = count;
+
+	sensor *newSensors = (sensor *)realloc(sensors, *nrSensors * sizeof(sensor));
+	if (newSensors == NULL)
+	{
+		printf("Error: failed to reallocate memory\n");
+		exit(1);
+	}
+	sensors = newSensors;
 }
