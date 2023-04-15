@@ -5,6 +5,9 @@
 #include "structs.h"
 
 #define BUF_LENGTH 20
+#define p_m_u power_management_unit
+#define NR_OPS sensors[i].nr_operations
+#define OPS_IDXS sensors[i].operations_idxs
 
 extern void get_operations(void **operations);
 
@@ -17,15 +20,9 @@ void clearSensors(sensor **sensors, int *nrSensors);
 
 int main(int argc, char const *argv[])
 {
-	// DEBUGGING MODE:
-
-	// argc = 2;
-	// argv[1] = "/home/darius/Documents/VS/C_C++/Teme_IOCLA/Tema1/checker/input/sensors_print_easy_1.dat";
-
-	// DEBUGGING MODE
 	if (argc < 2)
 	{
-		fprintf(stderr, "Please provide the name of a binary file as a parameter!\n");
+		fprintf(stderr, "Provide a binary file as a parameter!\n");
 		return 1;
 	}
 
@@ -55,13 +52,13 @@ int main(int argc, char const *argv[])
 		}
 		else if (sensors[i].sensor_type == PMU)
 		{
-			sensors[i].sensor_data = (power_management_unit *)malloc(sizeof(power_management_unit));
-			fread(sensors[i].sensor_data, sizeof(power_management_unit), 1, input);
+			sensors[i].sensor_data = (p_m_u *)malloc(sizeof(p_m_u));
+			fread(sensors[i].sensor_data, sizeof(p_m_u), 1, input);
 		}
 
-		fread(&sensors[i].nr_operations, sizeof(int), 1, input);
-		sensors[i].operations_idxs = (int *)malloc(sensors[i].nr_operations * sizeof(int));
-		fread(sensors[i].operations_idxs, sizeof(int), sensors[i].nr_operations, input);
+		fread(&NR_OPS, sizeof(int), 1, input);
+		OPS_IDXS = (int *)malloc(NR_OPS * sizeof(int));
+		fread(OPS_IDXS, sizeof(int), NR_OPS, input);
 	}
 	fclose(input);
 
@@ -149,7 +146,7 @@ void swapSensors(sensor *sensor1, sensor *sensor2)
 void printSensor(sensor sensor)
 {
 	tire_sensor *tire;
-	power_management_unit *pmu;
+	p_m_u *pmu;
 	switch (sensor.sensor_type)
 	{
 	case TIRE:
@@ -173,7 +170,7 @@ void printSensor(sensor sensor)
 	}
 	case PMU:
 	{
-		pmu = (power_management_unit *)sensor.sensor_data;
+		pmu = (p_m_u *)sensor.sensor_data;
 
 		printf("Power Management Unit\n");
 		printf("Voltage: %.2f\n", pmu->voltage);
@@ -208,7 +205,7 @@ void analyzeSensor(sensor sensor)
 bool isInvalid(sensor sensor)
 {
 	tire_sensor *tire;
-	power_management_unit *pmu;
+	p_m_u *pmu;
 	switch (sensor.sensor_type)
 	{
 	case TIRE:
@@ -230,7 +227,7 @@ bool isInvalid(sensor sensor)
 	}
 	case PMU:
 	{
-		pmu = (power_management_unit *)sensor.sensor_data;
+		pmu = (p_m_u *)sensor.sensor_data;
 		if (pmu->voltage < 10 || pmu->voltage > 20)
 		{
 			return true;
@@ -266,7 +263,7 @@ bool isInvalid(sensor sensor)
 
 void clearSensors(sensor **sensors, int *nrSensors)
 {
-	int i, count = 0;
+	int i, newSize = 0;
 	for (i = 0; i < *nrSensors; ++i)
 	{
 		if (isInvalid((*sensors)[i]))
@@ -276,17 +273,17 @@ void clearSensors(sensor **sensors, int *nrSensors)
 		}
 		else
 		{
-			(*sensors)[count++] = (*sensors)[i];
+			(*sensors)[newSize++] = (*sensors)[i];
 		}
 	}
 
-	*nrSensors = count;
+	*nrSensors = newSize;
 
-	sensor *newSensors = (sensor *)realloc(*sensors, *nrSensors * sizeof(sensor));
-	if (newSensors == NULL)
+	sensor *new = (sensor *)realloc(*sensors, *nrSensors * sizeof(sensor));
+	if (new == NULL)
 	{
 		printf("Error: failed to reallocate memory\n");
 		exit(1);
 	}
-	*sensors = newSensors;
+	*sensors = new;
 }
