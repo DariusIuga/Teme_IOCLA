@@ -13,7 +13,7 @@ void swapSensors(sensor *sensor1, sensor *sensor2);
 void printSensor(sensor sensor);
 void analyzeSensor(sensor sensor);
 bool isInvalid(sensor sensor);
-void clearSensors(sensor *sensors, int *nrSensors);
+void clearSensors(sensor **sensors, int *nrSensors);
 
 int main(int argc, char const *argv[])
 {
@@ -104,7 +104,7 @@ int main(int argc, char const *argv[])
 		}
 		else if (strcmp(token, "clear") == 0)
 		{
-			clearSensors(sensors, &nrSensors);
+			clearSensors(&sensors, &nrSensors);
 		}
 		else if (strcmp(token, "exit") == 0)
 		{
@@ -264,29 +264,29 @@ bool isInvalid(sensor sensor)
 	return false;
 }
 
-void clearSensors(sensor *sensors, int *nrSensors)
+void clearSensors(sensor **sensors, int *nrSensors)
 {
 	int i, count = 0;
 	for (i = 0; i < *nrSensors; ++i)
 	{
-		if (isInvalid(sensors[i]))
+		if (isInvalid((*sensors)[i]))
 		{
-			free(sensors[i].sensor_data);
-			free(sensors[i].operations_idxs);
+			free((*sensors)[i].sensor_data);
+			free((*sensors)[i].operations_idxs);
 		}
 		else
 		{
-			sensors[count++] = sensors[i];
+			(*sensors)[count++] = (*sensors)[i];
 		}
 	}
 
 	*nrSensors = count;
 
-	sensor *newSensors = (sensor *)realloc(sensors, *nrSensors * sizeof(sensor));
+	sensor *newSensors = (sensor *)realloc(*sensors, *nrSensors * sizeof(sensor));
 	if (newSensors == NULL)
 	{
 		printf("Error: failed to reallocate memory\n");
 		exit(1);
 	}
-	sensors = newSensors;
+	*sensors = newSensors;
 }
