@@ -11,12 +11,12 @@
 
 extern void get_operations(void **operations);
 
-void changeSensorPriority(sensor *sensors, int nrSensors);
-void swapSensors(sensor *sensor1, sensor *sensor2);
-void printSensor(sensor sensor);
-void analyzeSensor(sensor sensor);
-bool isInvalid(sensor sensor);
-void clearSensors(sensor **sensors, int *nrSensors);
+void change_sensor_priority(sensor *sensors, int nr_sensors);
+void swap_sensors(sensor *sensor1, sensor *sensor2);
+void print_sensor(sensor sensor);
+void analyze_sensor(sensor sensor);
+bool is_invalid(sensor sensor);
+void clear_sensors(sensor **sensors, int *nr_sensors);
 
 int main(int argc, char const *argv[])
 {
@@ -34,14 +34,18 @@ int main(int argc, char const *argv[])
 	}
 
 	sensor *sensors;
-	int nrSensors, i;
+	int nr_sensors
+, i;
 	char line[BUF_LENGTH], *token;
 
-	fread(&nrSensors, sizeof(int), 1, input);
+	fread(&nr_sensors
+, sizeof(int), 1, input);
 
-	sensors = (sensor *)malloc(nrSensors * sizeof(sensor));
+	sensors = (sensor *)malloc(nr_sensors
+ * sizeof(sensor));
 
-	for (i = 0; i < nrSensors; i++)
+	for (i = 0; i < nr_sensors
+; i++)
 	{
 		fread(&sensors[i].sensor_type, sizeof(enum sensor_type), 1, input);
 
@@ -62,7 +66,8 @@ int main(int argc, char const *argv[])
 	}
 	fclose(input);
 
-	changeSensorPriority(sensors, nrSensors);
+	change_sensor_priority(sensors, nr_sensors
+);
 
 	// Input from terminal
 	if (fgets(line, BUF_LENGTH, stdin) == NULL)
@@ -77,35 +82,39 @@ int main(int argc, char const *argv[])
 		{
 			token = strtok(NULL, "\n");
 			i = atoi(token);
-			if (i < 0 || i > nrSensors - 1)
+			if (i < 0 || i > nr_sensors
+		 - 1)
 			{
 				printf("Index not in range!\n");
 			}
 			else
 			{
-				printSensor(sensors[i]);
+				print_sensor(sensors[i]);
 			}
 		}
 		else if (strcmp(token, "analyze") == 0)
 		{
 			token = strtok(NULL, "\n");
 			i = atoi(token);
-			if (i < 0 || i > nrSensors - 1)
+			if (i < 0 || i > nr_sensors
+		 - 1)
 			{
 				printf("Index not in range!\n");
 			}
 			else
 			{
-				analyzeSensor(sensors[i]);
+				analyze_sensor(sensors[i]);
 			}
 		}
 		else if (strcmp(token, "clear") == 0)
 		{
-			clearSensors(&sensors, &nrSensors);
+			clear_sensors(&sensors, &nr_sensors
+		);
 		}
 		else if (strcmp(token, "exit") == 0)
 		{
-			for (i = 0; i < nrSensors; i++)
+			for (i = 0; i < nr_sensors
+		; i++)
 			{
 				free(sensors[i].sensor_data);
 				free(sensors[i].operations_idxs);
@@ -120,30 +129,31 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void changeSensorPriority(sensor *sensors, int nrSensors)
+void change_sensor_priority(sensor *sensors, int nr_sensors)
 {
 	int i, j, pmuIndex = 0;
-	for (i = 0; i < nrSensors; ++i)
+	for (i = 0; i < nr_sensors
+; ++i)
 	{
 		if (sensors[i].sensor_type == PMU)
 		{
 			for (j = i; j > pmuIndex; --j)
 			{
-				swapSensors(&sensors[j], &sensors[j - 1]);
+				swap_sensors(&sensors[j], &sensors[j - 1]);
 			}
 			++pmuIndex;
 		}
 	}
 }
 
-void swapSensors(sensor *sensor1, sensor *sensor2)
+void swap_sensors(sensor *sensor1, sensor *sensor2)
 {
 	sensor temp = *sensor1;
 	*sensor1 = *sensor2;
 	*sensor2 = temp;
 }
 
-void printSensor(sensor sensor)
+void print_sensor(sensor sensor)
 {
 	tire_sensor *tire;
 	p_m_u *pmu;
@@ -189,7 +199,7 @@ void printSensor(sensor sensor)
 	}
 }
 
-void analyzeSensor(sensor sensor)
+void analyze_sensor(sensor sensor)
 {
 	int i;
 	void (*operations[8])(void *);
@@ -202,7 +212,7 @@ void analyzeSensor(sensor sensor)
 	}
 }
 
-bool isInvalid(sensor sensor)
+bool is_invalid(sensor sensor)
 {
 	tire_sensor *tire;
 	p_m_u *pmu;
@@ -261,12 +271,13 @@ bool isInvalid(sensor sensor)
 	return false;
 }
 
-void clearSensors(sensor **sensors, int *nrSensors)
+void clear_sensors(sensor **sensors, int *nr_sensors)
 {
 	int i, newSize = 0;
-	for (i = 0; i < *nrSensors; ++i)
+	for (i = 0; i < *nr_sensors
+; ++i)
 	{
-		if (isInvalid((*sensors)[i]))
+		if (is_invalid((*sensors)[i]))
 		{
 			free((*sensors)[i].sensor_data);
 			free((*sensors)[i].operations_idxs);
@@ -277,9 +288,11 @@ void clearSensors(sensor **sensors, int *nrSensors)
 		}
 	}
 
-	*nrSensors = newSize;
+	*nr_sensors
+ = newSize;
 
-	sensor *new = (sensor *)realloc(*sensors, *nrSensors * sizeof(sensor));
+	sensor *new = (sensor *)realloc(*sensors, *nr_sensors
+ * sizeof(sensor));
 	if (new == NULL)
 	{
 		printf("Error: failed to reallocate memory\n");
