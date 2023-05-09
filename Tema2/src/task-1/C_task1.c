@@ -1,16 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void)
+void simple(int len, char *plain, char *enc_string, int step)
 {
-    int len = 10;
-    char *plain = (char *)malloc(len * sizeof(char));
-    char *enc_string = (char *)malloc(len * sizeof(char));
-    int step = 25;
     int i = 0;
-
-    plain = "ZZZZZZZZZZ";
-
 loop:
     if (i >= len)
     {
@@ -26,6 +19,18 @@ loop:
 
 done:
     printf("%s\n", enc_string);
+}
+
+int main(void)
+{
+    int len = 25;
+    char *plain = (char *)malloc(len * sizeof(char));
+    char *enc_string = (char *)malloc(len * sizeof(char));
+    int step = 15;
+
+    plain = "THYROPARATHYROIDECTOMIZED";
+
+    simple(len, plain, enc_string, step);
 
     return 0;
 }
