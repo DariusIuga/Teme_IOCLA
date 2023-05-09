@@ -21,13 +21,12 @@ simple:
     ;; Your code starts here
     
     xor eax, eax	        ; clear eax to use as counter i
-	xor ebx, ebx
 
 loop:
 	cmp eax, ecx ; check if i >= len
 	jge done ; if true, go to done
 	mov bl, byte [esi + eax] ; load plain[i] into bl
-	add bl, edx ; add step to plain[i]
+	add bl, dl ; add step to plain[i]
 	cmp bl, 'Z' ; check if enc_string[i] > 'Z'
 	jle no_wrap ; if not, skip wrap
 	sub bl, 26 ; subtract 26 to wrap around to 'A'
