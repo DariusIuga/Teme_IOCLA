@@ -8,38 +8,51 @@ typedef struct
     short time;
 } proc __attribute__((packed));
 
-void swap_procs(proc *proc_1, proc *proc_2)
-{
-    proc temp = *proc_1;
-    *proc_1 = *proc_2;
-    *proc_2 = temp;
-}
-
 void sort_procs(proc *procs, int len)
 {
-    int i, j;
+    // Field-ul prio reprezinta prioritatea pe care o are un proces atunci cand acesta ruleaza pe procesor.
+    // Fiecare proces are o astfel de prioritate, de la 1 la 5, 1 reprezentand prioritate maxima de rulare, iar 5 reprezentand prioritate minima de rulare.
+    int i = 0;
+    int swapped = 1;
     proc temp;
-    for (i = 0; i < len; i++)
+
+    goto start;
+
+swap:
+    temp = proc_1;
+    proc_1 = proc_2;
+    proc_2 = temp;
+    swapped = 1;
+
+start:
+    if (swapped)
     {
-        for (j = i + 1; j < len; j++)
-        {
-            // Sortarea proceselor dupa prioritate
-            // 1- prioritatea maxima, 5- prioritatea minima
-            if (procs[i].prio < procs[j].prio)
+        swapped = 0;
+        i = 0;
+        goto loop;
+    }
+
+    return;
+
+loop:
+    if (i < len - 1)
+    {
+        // Pentru a sorta procesele, stabilim urmatoarele reguli :
+        //     1) Procesele trebuie sa apara in ordine crescatoare in functie de prioritate.
+        //     2) Pentru procesele cu aceeasi prioritate, acestea se vor ordona crescator in functie de cuanta de timp.
+        //     3) Pentru procese cu aceeasi prioritate si cu aceeasi cuanta de timp, acestea vor fi ordonate crescator dupa id.
+
+        if ((procs[i].prio < procs[i + 1].prio) || (procs[i].prio == procs[i + 1].prio && procs[i].time > procs[i + 1].time) ||
+            (procs[i].prio == procs[i + 1].prio && procs[i].time == procs[i + 1].time && procs[i].pid > procs[i + 1].pid))
             {
-                swap_procs(&procs[i], &procs[j]);
+                goto swap;
             }
-            // În caz de prioritate egală, sortare crescătoare după timp
-            else if (procs[i].prio == procs[j].prio && procs[i].time > procs[j].time)
-            {
-                swap_procs(&procs[i], &procs[j]);
-            }
-            // În caz de prioritate și timp egal, sortare crescătoare după PID
-            else if (procs[i].prio == procs[j].prio && procs[i].time == procs[j].time && procs[i].pid > procs[j].pid)
-            {
-                swap_procs(&procs[i], &procs[j]);
-            }
-        }
+        i++;
+        goto loop;
+    }
+    else
+    {
+        goto start;
     }
 }
 
