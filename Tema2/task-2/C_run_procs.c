@@ -58,45 +58,35 @@ swap:
 
 void run_procs(proc *procs, int len, avg *avg_out)
 {
-    char current = '0';
-    char j = -1;
-
-loop1:
-    current++;
-    j++;
-    if (current > '5')
-    {
-        return;
-    }
+    char current = '1';
+    char j = 0;
     int i = 0;
-    int sum = 0;
-    int nr = 0;
+    int sum;
+    int nr;
 
-loop2:
-    if (i >= len)
+    while (i < len)
     {
-        goto division;
+        sum = 0;
+        nr = 0;
+        while (procs[i].prio == current)
+        {
+            sum += procs[i].time;
+            nr++;
+            i++;
+        }
+        if (nr == 0)
+        {
+            avg_out[j].quo = 0;
+            avg_out[j].remain = 0;
+        }
+        else
+        {
+            avg_out[j].quo = sum / nr;
+            avg_out[j].remain = sum % nr;
+        }
+        current++;
+        j++;
     }
-    if (procs[i].prio == current)
-    {
-        sum += procs[i].time;
-        nr++;
-    }
-    i++;
-    goto loop2;
-
-division:
-    if (nr == 0)
-    {
-        avg_out[j].quo = 0;
-        avg_out[j].remain = 0;
-    }
-    else
-    {
-        avg_out[j].quo = sum / nr;
-        avg_out[j].remain = sum % nr;
-    }
-    goto loop1;
 }
 
 int main(void)

@@ -13,8 +13,8 @@ endstruc
 
     ;; Hint: you can use these global arrays
 section .data
-    prio_result dd 0, 0, 0, 0, 0
-    time_result dd 0, 0, 0, 0, 0
+    prio_result dd 0, 0, 0, 0, 0 ;nr of processes with a certain priority
+    time_result dd 0, 0, 0, 0, 0 ;sum of time
 
 section .text
     global run_procs
@@ -44,90 +44,65 @@ clean_results:
     ;; Your code starts here
 
     xor edx,edx
+    ; The char representing the current priority is stored in dh
+    mov dh,'1' ;current
+    ; The current index of the proc_avg vector is stored in dl
+    xor dl,dl
 
-    ; The current priority
-    mov dh, byte '0' ;char current
-    ; Index of the corresponding fields in the avg_out vector
-    mov dl, byte -1 ;char j
+    ; edi stores the index of the process array
+    xor edi,edi ;i
+    ; esi stores the offset from the start of the proc vector
+    xor esi,esi
 
 loop1:
-    inc dh
-    inc dl
-    cmp dh,'5'
-    jg done
 
-    ; ebp will be used for storing the index of the proc array
-    ;push ebp
-    ;xor ebp,ebp ;int i
-    ; esp will be used for storing the offset from the beginning
-    ; of the proc vector (because proc_size is not a power of 2)
-    ;push esp
-    ;xor esp,esp
-
-    ; edi and esi will store the sum and nr of processes with
-    ; the current priority (in dh)
-    xor edi,edi ;int sum
-    xor esi,esi ;int nr
+    cmp edi,ebx
+    jge done
 
 loop2:
-    ;cmp ebp, ebx
-    ;jge division
+    cmp byte [ecx+esi+proc.prio], byte dh
+    jne pass1
+    
+    push edx
+    movzx  edx, dl
 
-    ;cmp byte [ecx+esp + proc.prio], dh
-    ;jne pass
-    ;add edi, [ecx+esp + proc.time]
-    ;inc esi
 
-pass:
-    ;inc ebp
-    ;add esp,5
-    ;jmp loop2
 
-division:
-    ;cmp esi,0
-    ; If no processes with a certain priority are found,
-    ; the quotient and remainder for that priority are set to zero
-    ;jnz not_zero
+    push eax
+    push ebx
+    mov eax, dword [time_result + edx*4]
+    mov ebx, dword [ecx+esi+proc.time]
+    add eax, ebx
+    mov dword [time_result + edx*4], eax
+    pop ebx
+    pop eax
 
-    ;push ebx
-    ;lea ebx, [eax + edx * avg_size + avg.quo]
-    ;mov word [ebx], 0
-    ;lea ebx, [eax + edx * avg_size + avg.remain]
-    ;mov word [ebx], 0
-    ;pop ebx
+    inc dword prio_result[edx*4]
+    pop edx
 
-not_zero:
-    ; ebx and acx aren't being used in this block and can be restored later
-    ;push ebx
-    ;push ecx
-    ;push eax
-    ;push edx
+    inc edi
+    add esi,5
+    jmp loop2
 
-    ;xor edx,edx
-    ;mov eax,edi
-    ;div esi
-    ;mov ebx,eax ; quotient
-    ;mov ecx,edx ; remainder
+pass1:
+    ; If no processes of a certain priority are found,
+    ; the quotient and remainder are set to zero
+    push edx
+    movzx edx, dl
+    cmp dword [prio_result + edx*4], 0
+    pop edx
+    jnz division
 
-    ; We restore j, current and the avg_out vector in which
-    ; the values will be written
-    ;pop edx
-    ;pop eax
+    push edx
+    movzx edx,dl
+    mov word [eax+edx*avg_size + avg.quo],word 0
+    mov word [eax+edx*avg_size + avg.remain],word 0
+    pop edx
 
-    ;push edi
-    ;lea edi, [eax + edx * avg_size + avg.quo]
-    ;mov word [edi], bx
-    ;lea edi, [eax + edx * avg_size + avg.remain]
-    ;mov word [edi], cx
-    ;pop edi
 
-    ; Finally, we restore the processes vector and the length
-    ;pop ecx
-    ;pop ebx
-
-    ;pop esp
-    ;pop ebp
-
+next_prio:
+    inc dh
+    inc dl
     jmp loop1
 
 done:
@@ -140,3 +115,7 @@ done:
     leave
     ret
     ;; DO NOT MODIFY
+
+division:
+
+    jmp next_prio
