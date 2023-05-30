@@ -1,7 +1,5 @@
 section .data
 	; declare global vars here
-	vowels db "aeiou", 0
-
 
 section .text
 	global reverse_vowels
@@ -16,75 +14,73 @@ reverse_vowels:
 	pop ebp
 	pusha
 
-	; sirul va fi retinut in eax
+	xor edx, edx
 	xor eax, eax
-	add eax, [ebp+8]
-	; edi retine contorul pentru sir
-	xor edi,edi
-	; esi retine contorul pentru sirul de vocale "aeiou"
-	xor esi,esi
+	xor ecx, ecx
+	xor esi, esi
+	add esi, [ebp + 8]
 
+find_length:
+	cmp byte [esi + ecx], 0
+	je loop1
+	inc ecx 
+	jmp find_length
 
-outer_loop1:
-	; caracterul curent din sir e retinut in edx
-	xor edx,edx
-	add dl, byte [eax+edi]
-	inc edi
-	cmp dl, 0
-	je write 
+loop1:
+	cmp edx, ecx
+	jl find_vowels
+	je intermediar
 
-	xor esi,esi
+find_vowels:
+	cmp byte [esi + edx], 'a'
+	je push_vowel
+	cmp byte [esi + edx], 'e'
+	je push_vowel
+	cmp byte [esi + edx], 'i'
+	je push_vowel
+	cmp byte [esi + edx], 'o'
+	je push_vowel
+	cmp byte [esi + edx], 'u'
+	je push_vowel
+	inc edx
+	jmp loop1
 
-inner_loop1:
-	; vocala curenta din sirul "aeiou" e retinuta in ebx
-	xor ebx,ebx
-	add bl,byte [vowels+esi]
-	inc esi
-	cmp ebx, 0
-	je outer_loop1
-	cmp dl,bl
-	jne not_this_vowel1
+push_vowel:
+	push dword [esi + edx]
+	inc edx
+	jmp loop1
 
-	; caracterul curent din sir este vocala din edi
-	push edx
+intermediar:
+	xor edx, edx
 
-not_this_vowel1:
-	jmp inner_loop1
+loop2:
+	cmp edx, ecx
+	jl write_vowels
+	je end
 
+write_vowels:
+	cmp byte [esi + edx], 'a'
+	je pop_vowel
+	cmp byte [esi + edx], 'e'
+	je pop_vowel
+	cmp byte [esi + edx], 'i'
+	je pop_vowel
+	cmp byte [esi + edx], 'o'
+	je pop_vowel
+	cmp byte [esi + edx], 'u'
+	je pop_vowel
+	inc edx
+	jmp loop2
 
-write:
-xor edi,edi
+pop_vowel:
 
-outer_loop2:
-	; caracterul curent din sir e retinut in edx
-	xor edx,edx
-	add dl,byte [eax+edi]
-	inc edi
-	cmp dl, 0
-	je done 
+	and byte [esi + edx], 0
+	pop eax
+	add byte [esi + edx], al
+	inc edx
+	jmp loop2
 
-	xor ecx,ecx
-
-inner_loop2:
-	; vocala curenta din sirul "aeiou"
-	xor ebx,ebx
-	add bl,byte [vowels+esi]
-	inc esi
-	cmp bl, 0
-	je outer_loop2
-	cmp dl,bl
-	jne not_this_vowel2
-
-	; caracterul curent din sir este vocala din ebx
-	xor ecx,ecx
-	pop ecx
-	add [eax+ebx-1], cl
-
-not_this_vowel2:
-	jmp inner_loop2
-
-
-done:
+end:
 
 	popa
 	push esp
